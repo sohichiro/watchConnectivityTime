@@ -13,7 +13,6 @@ class ViewController: UIViewController, WCSessionDelegate {
 
     @IBOutlet weak var characterLength: UILabel!
     @IBOutlet weak var intervalLabel: UILabel!
-    
     @IBOutlet weak var debugTextView: UITextView!
     
     @IBOutlet weak var interbalSlider: UISlider!
@@ -26,10 +25,9 @@ class ViewController: UIViewController, WCSessionDelegate {
     var messegeInterbal:Double = 1.0
     
     var timer:NSTimer = NSTimer()
-    var messegeFlg = false
-    var messageDataFlg = false
+    var msgFlg: Bool = false
     
-    var errorRettyFlg = false
+    var retryFlg:Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,14 +83,14 @@ class ViewController: UIViewController, WCSessionDelegate {
         self.messegeLength = temp
     }
     
-    func reloadInterbal() {
+    func reloadInterbalView() {
         dispatch_async(dispatch_get_main_queue()) { () -> Void in
             let display = NSString(format: "%03.2f", (self.messegeInterbal))
             self.intervalLabel.text = display as String
         }
     }
     
-    func reloadCharLength() {
+    func reloadCharLengthView() {
         dispatch_async(dispatch_get_main_queue()) { () -> Void in
             let display = NSString(format: "%d", Int(self.messegeLength))
             self.characterLength.text = display as String
@@ -100,14 +98,11 @@ class ViewController: UIViewController, WCSessionDelegate {
         
     }
 
-    
     @IBAction func changeInterbalSlider(sender: AnyObject) {
         let data = sender as! UISlider
         self.changeIntervalValue(data.value)
-        
         self.exeTimer()
-        
-        self.reloadInterbal()
+        self.reloadInterbalView()
     }
     
     
@@ -116,7 +111,7 @@ class ViewController: UIViewController, WCSessionDelegate {
         
         self.changeIntervalValue(Float(data.value))
         self.exeTimer()
-        self.reloadInterbal()
+        self.reloadInterbalView()
         
     }
     
@@ -126,39 +121,37 @@ class ViewController: UIViewController, WCSessionDelegate {
         let data = sender as! UIStepper
         self.changeLengthValue(Int(data.value))
         self.exeTimer()
-        self.reloadCharLength()
+        self.reloadCharLengthView()
     }
     
     @IBAction func changeCharacterSlider(sender: AnyObject) {
         let data = sender as! UISlider
         self.changeLengthValue(Int(data.value))
         self.exeTimer()
-        self.reloadCharLength()
+        self.reloadCharLengthView()
     }
     
     func exeTimer() {
         if timer.valid {
             timer.invalidate()
         }
-        if messegeFlg {
+        
+        if msgFlg {
             timer = NSTimer.scheduledTimerWithTimeInterval((messegeInterbal as NSTimeInterval), target: self, selector: "sendMsg", userInfo: nil, repeats: true)
         }
-        else if messageDataFlg {
+        else {
             timer = NSTimer.scheduledTimerWithTimeInterval((messegeInterbal as NSTimeInterval), target: self, selector: "sendMsgData", userInfo: nil, repeats: true)
         }
         
     }
     
     @IBAction func pushSendMessage(sender: AnyObject) {
-        self.messegeFlg = true
-        self.messageDataFlg = false
+        self.msgFlg = true
         self.exeTimer()
     }
     
     @IBAction func pushSendMessageData(sender: AnyObject) {
-        //間隔が0.6秒以下だと時間が長くなっていく(i=50000)
-        self.messageDataFlg = true
-        self.messegeFlg = false
+        self.msgFlg = false
         self.exeTimer()
     }
     
@@ -167,81 +160,76 @@ class ViewController: UIViewController, WCSessionDelegate {
 
     
     func sendMsg(){
-        //let length:Int = 65507 //10000はエラー 70000もエラー 65507が境目っぽい。
         let sendMsg = self.randomCharMaker(messegeLength)
         let message:[String : AnyObject] = ["s" : "\(sendMsg)"]
         let sendTime:NSDate = NSDate()
         var diff = NSTimeInterval()
+        
         WCSession.defaultSession().sendMessage(message, replyHandler: { (reply) -> Void in
             let diffTime = NSDate()
             diff = diffTime.timeIntervalSinceDate(sendTime)
             
             if reply["reply"] as! String == "OK" {
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    let displayInterbal = NSString(format: "%03.2f", (self.messegeInterbal))
+                    let displayInterbal = NSString(format: "%02.1f", (self.messegeInterbal))
                     let displayTime = NSString(format: "%04.3f", diff)
                     
-                    print("sendMessage::interbal = \(displayInterbal) char = \(self.messegeLength) time = \(displayTime) s")
-                    let displayStr = "sendMessage::interbal = \(displayInterbal) char = \(self.messegeLength) time = \(displayTime) s \n"
+                    print("msg::itbl = \(displayInterbal) char = \(self.messegeLength) time = \(displayTime)s")
+                    let displayStr = "msg::itbl = \(displayInterbal) char = \(self.messegeLength) time = \(displayTime)s\n"
                     self.appendDisplay(displayStr)
                 })
-                //self.retrySetting()
             }
             else {
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    print("Something Error \(self.lengthGlobal)")
-                    let displayStr = "Something Error char = \(self.messegeLength) \n"
+                    print("sendMsg Something Error::char = \(self.lengthGlobal)")
+                    let displayStr = "sendMsgData Something Error:: char = \(self.messegeLength) \n"
                     self.appendDisplay(displayStr)
                     self.errorRetrySetting()
                 })
             }
             }, errorHandler: { (error) -> Void in
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    print("Error reply \(self.messegeLength)")
+                    print("sendMsg Error reply:: char = \(self.messegeLength)")
                     let displayStr = "Error reply \(self.messegeLength) \n"
                     self.appendDisplay(displayStr)
                     self.errorRetrySetting()
                 })
         })
-        //return diff
     }
     
     func sendMsgData(){
-        //let length:Int = 65507  65507が境目っぽい。
         let sendMsg = self.randomCharMaker(messegeLength)
         let sendMsgData = sendMsg.dataUsingEncoding(NSUTF8StringEncoding)
         let sendTime:NSDate = NSDate()
         var diff = NSTimeInterval()
         
         WCSession.defaultSession().sendMessageData(sendMsgData!, replyHandler: { (replyData) -> Void in
-            //what
             let diffTime = NSDate()
             diff = diffTime.timeIntervalSinceDate(sendTime)
             
             let replyStr = NSString(data: replyData, encoding: NSUTF8StringEncoding)
             if replyStr == "OK" {
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    let displayInterbal = NSString(format: "%03.2f", (self.messegeInterbal))
+                    let displayInterbal = NSString(format: "%02.1f", (self.messegeInterbal))
                     let displayTime = NSString(format: "%04.3f", diff)
                     
-                    print("sendMessageData::interbal = \(displayInterbal) char = \(self.messegeLength) time = \(displayTime) s")
-                    let displayStr = "sendMessageData::interbal = \(displayInterbal) char = \(self.messegeLength) time = \(displayTime) s \n"
+                    print("data::itbl = \(displayInterbal) char = \(self.messegeLength)s time = \(displayTime)s")
+                    let displayStr = "data::itbl = \(displayInterbal) char = \(self.messegeLength)s time = \(displayTime)s\n"
                     self.appendDisplay(displayStr)
                 })
-                //self.retrySetting()
             }
             else {
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    print("Something Error \(self.messegeLength)")
-                    let displayStr = "Something Error char = \(self.messegeLength) \n"
+                    print("sendMsgData Something Error::char = \(self.messegeLength)")
+                    let displayStr = "sendMsgData Something Error:: char = \(self.messegeLength) \n"
                     self.appendDisplay(displayStr)
                     self.errorRetrySetting()
                 })
             }
             }, errorHandler: { (error) -> Void in
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    print("Error reply \(self.messegeLength)")
-                    let displayStr = "Error reply \(self.messegeLength) \n"
+                    print("send messageData Error reply:: char = \(self.messegeLength)")
+                    let displayStr = "send messageData Error reply:: char = \(self.messegeLength) \n"
                     self.appendDisplay(displayStr)
                     self.errorRetrySetting()
                 })
@@ -255,28 +243,28 @@ class ViewController: UIViewController, WCSessionDelegate {
     }
     
     func errorRetrySetting() {
-        if errorRettyFlg {
+        if retryFlg {
             let decrimentLength = self.messegeLength - 1
             self.changeLengthValue(decrimentLength)
-            errorRettyFlg = false
-            self.reloadCharLength()
+            retryFlg = false
+            self.reloadCharLengthView()
         }
         else {
-            var decrimentInterval = Float(self.messegeInterbal + 0.1)
+            let decrimentInterval = Float(self.messegeInterbal + 0.1)
             self.changeIntervalValue(decrimentInterval)
-            errorRettyFlg = true
-            self.reloadInterbal()
+            retryFlg = true
+            self.reloadInterbalView()
         }
         
         self.exeTimer()
     }
     
     func retrySetting() {
-        if errorRettyFlg {
+        if retryFlg {
             let decrimentLength = self.messegeLength + 1
             self.changeLengthValue(decrimentLength)
-            errorRettyFlg = false
-            self.reloadCharLength()
+            retryFlg = false
+            self.reloadCharLengthView()
         }
         else {
             var decrimentInterval = Float(self.messegeInterbal - 0.1)
@@ -284,17 +272,11 @@ class ViewController: UIViewController, WCSessionDelegate {
                 decrimentInterval = 0.1
             }
             self.changeIntervalValue(decrimentInterval)
-            errorRettyFlg = true
-            self.reloadInterbal()
+            retryFlg = true
+            self.reloadInterbalView()
         }
         
         self.exeTimer()
-    }
-    
-    func checkSetting() {
-        if self.messegeInterbal < 0 {
-            
-        }
     }
     
     func randomCharMaker(length:Int = 1) -> String{
