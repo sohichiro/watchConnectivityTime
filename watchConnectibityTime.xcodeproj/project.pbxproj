@@ -222,7 +222,6 @@
 				TargetAttributes = {
 					7643EFFF1C0D27EF009D36B9 = {
 						CreatedOnToolsVersion = 7.1.1;
-						DevelopmentTeam = DR6E9YV78Z;
 					};
 					7643F0161C0D2840009D36B9 = {
 						CreatedOnToolsVersion = 7.1.1;
@@ -531,6 +530,7 @@
 				7643F0141C0D27EF009D36B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		7643F0321C0D2841009D36B9 /* Build configuration list for PBXNativeTarget "watchConnectibityTimeWatch Extension" */ = {
 			isa = XCConfigurationList;
@@ -539,6 +539,7 @@
 				7643F0341C0D2841009D36B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		7643F0361C0D2841009D36B9 /* Build configuration list for PBXNativeTarget "watchConnectibityTimeWatch" */ = {
 			isa = XCConfigurationList;
@@ -547,6 +548,7 @@
 				7643F0381C0D2841009D36B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

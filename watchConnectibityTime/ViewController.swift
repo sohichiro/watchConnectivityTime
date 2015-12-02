@@ -58,6 +58,13 @@ class ViewController: UIViewController, WCSessionDelegate {
         
     }
     
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    // MARK:: changeInterbal
+    
     func changeIntervalValue(value:Float) {
         var temp = value
         if value < 0.1 {
@@ -78,10 +85,21 @@ class ViewController: UIViewController, WCSessionDelegate {
         self.messegeLength = temp
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func reloadInterbal() {
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            let display = NSString(format: "%03.2f", (self.messegeInterbal))
+            self.intervalLabel.text = display as String
+        }
     }
+    
+    func reloadCharLength() {
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            let display = NSString(format: "%d", Int(self.messegeLength))
+            self.characterLength.text = display as String
+        }
+        
+    }
+
     
     @IBAction func changeInterbalSlider(sender: AnyObject) {
         let data = sender as! UISlider
@@ -90,26 +108,6 @@ class ViewController: UIViewController, WCSessionDelegate {
         self.exeTimer()
         
         self.reloadInterbal()
-    }
-
-    func reloadInterbal() {
-        dispatch_async(dispatch_get_main_queue()) { () -> Void in
-            let display = NSString(format: "%03.2f", (self.messegeInterbal))
-            self.intervalLabel.text = display as String
-        }
-    }
-    
-    func exeTimer() {
-        if timer.valid {
-            timer.invalidate()
-        }
-        if messegeFlg {
-            timer = NSTimer.scheduledTimerWithTimeInterval((messegeInterbal as NSTimeInterval), target: self, selector: "sendMsg", userInfo: nil, repeats: true)
-        }
-        else if messageDataFlg {
-            timer = NSTimer.scheduledTimerWithTimeInterval((messegeInterbal as NSTimeInterval), target: self, selector: "sendMsgData", userInfo: nil, repeats: true)
-        }
-
     }
     
     
@@ -122,6 +120,7 @@ class ViewController: UIViewController, WCSessionDelegate {
         
     }
     
+    // MARK:: changeIntarbal
     
     @IBAction func stepCharacter(sender: AnyObject) {
         let data = sender as! UIStepper
@@ -130,19 +129,24 @@ class ViewController: UIViewController, WCSessionDelegate {
         self.reloadCharLength()
     }
     
-    func reloadCharLength() {
-        dispatch_async(dispatch_get_main_queue()) { () -> Void in
-            let display = NSString(format: "%05f", (self.messegeLength))
-            self.characterLength.text = display as String
-        }
-        
-    }
-    
     @IBAction func changeCharacterSlider(sender: AnyObject) {
         let data = sender as! UISlider
         self.changeLengthValue(Int(data.value))
         self.exeTimer()
         self.reloadCharLength()
+    }
+    
+    func exeTimer() {
+        if timer.valid {
+            timer.invalidate()
+        }
+        if messegeFlg {
+            timer = NSTimer.scheduledTimerWithTimeInterval((messegeInterbal as NSTimeInterval), target: self, selector: "sendMsg", userInfo: nil, repeats: true)
+        }
+        else if messageDataFlg {
+            timer = NSTimer.scheduledTimerWithTimeInterval((messegeInterbal as NSTimeInterval), target: self, selector: "sendMsgData", userInfo: nil, repeats: true)
+        }
+        
     }
     
     @IBAction func pushSendMessage(sender: AnyObject) {
