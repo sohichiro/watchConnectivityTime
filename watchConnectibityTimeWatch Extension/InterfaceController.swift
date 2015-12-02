@@ -39,28 +39,6 @@ class InterfaceController: WKInterfaceController, WCSessionDelegate {
     }
 
     func session(session: WCSession, didReceiveMessage message: [String : AnyObject], replyHandler: ([String : AnyObject]) -> Void) {
-/*        
-        if let watchInfo = message["sendMessageToWatch"] as? String {
-            var show:String
-            
-            if watchInfo == "0" {
-                show = "🐶"
-            }
-            else if watchInfo == "1" {
-                show = "🐱"
-            }
-            else if watchInfo == "2" {
-                show = "🐘"
-            }
-            else {
-                show = "🐧"
-            }
-            dispatch_async(dispatch_get_main_queue(), {
-                self.statusLabel.setText(show)
-            })
-        }
-*/
-        
         replyHandler(["reply" : "OK"])
     }
     
